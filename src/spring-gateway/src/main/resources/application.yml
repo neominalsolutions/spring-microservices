@@ -1,0 +1,52 @@
+
+spring:
+  application:
+    name: spring-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: order-service-client
+              uri: lb://order-service-client
+              predicates:
+                - Path=/order-service/api/v1/**
+              filters:
+                - StripPrefix=1
+            - id: product-service-client
+              uri: lb://product-service-client
+              predicates:
+                - Path=/product-service/api/v1/**
+                - Method=GET,POST
+              filters:
+                - StripPrefix=1
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+
+logging:
+  level:
+    # Netty (WebClient, Gateway, Reactor Netty)
+    reactor.netty: DEBUG
+    reactor.netty.http.client: DEBUG
+    reactor.netty.http.server: DEBUG
+    io.netty: DEBUG
+
+#    # Eureka
+#    com.netflix.discovery: DEBUG
+#    com.netflix.eureka: DEBUG
+#    # Feign
+#    feign.Client: DEBUG
+#    feign.Request: DEBUG
+#    feign.Response: DEBUG
+#    org.springframework.cloud.openfeign: DEBUG
+#    # Gateway
+#    org.spring.cloud.loadbalancer: DEBUG
+#    org.spring.cloud.gateway: DEBUG
+
+server:
+  port: 5015

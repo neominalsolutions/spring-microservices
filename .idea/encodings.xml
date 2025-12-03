@@ -4,5 +4,6 @@
     <file url="file://$PROJECT_DIR$/src/order-service-client/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/product-service-client/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/spring-eureka-server/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/spring-gateway/src/main/java" charset="UTF-8" />
   </component>
 </project>

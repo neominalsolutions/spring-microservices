@@ -9,6 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="spring-eureka-server" />
         <module name="product-service-client" />
+        <module name="spring-gateway" />
       </profile>
       <profile name="Annotation profile for order-service-client" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -26,6 +27,7 @@
       <module name="order-service-client" options="-parameters" />
       <module name="product-service-client" options="-parameters" />
       <module name="spring-eureka-server" options="-parameters" />
+      <module name="spring-gateway" options="-parameters" />
     </option>
   </component>
 </project>
