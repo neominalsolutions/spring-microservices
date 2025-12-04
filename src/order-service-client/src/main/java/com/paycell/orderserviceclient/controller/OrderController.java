@@ -1,14 +1,19 @@
 package com.paycell.orderserviceclient.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paycell.orderserviceclient.client.ProductClient;
 import com.paycell.orderserviceclient.request.SubmitOrderRequest;
 import com.paycell.orderserviceclient.response.SubmitOrderResponse;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
+import org.springframework.messaging.Message;
+import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,9 +24,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderController {
 
     private final ProductClient _productClient;
+    private final StreamBridge _streamBride;
+    private final ObjectMapper _objectMapper;
 
-    public OrderController(ProductClient productClient){
+    public OrderController(ProductClient productClient, StreamBridge streamBridge, ObjectMapper objectMapper){
         _productClient = productClient;
+        _streamBride = streamBridge;
+        _objectMapper = objectMapper;
     }
 
 
@@ -46,6 +55,22 @@ public class OrderController {
     //@RateLimiter(name = "ProductClient", fallbackMethod = "ProductClientRatelimitterFallback")
     @CircuitBreaker(name = "ProductClient",fallbackMethod="ProductClientCircuitBrakerFallback")
     public ResponseEntity<SubmitOrderResponse> submitOrder(@RequestBody SubmitOrderRequest request){
+        return _productClient.checkStock(request);
+    }
+
+
+    // api/v1/order/submitEvent
+    @PostMapping("submitEvent")
+    public ResponseEntity<SubmitOrderResponse> submitOrderEvent(@RequestBody SubmitOrderRequest request) throws JsonProcessingException {
+
+        String payload = _objectMapper.writeValueAsString(request);
+
+        Message<String> message = MessageBuilder.withPayload(payload).build();
+        boolean isSend = _streamBride.send("submitOrder-out-0",message);
+
+        if(!isSend)
+            throw new RuntimeException("Order Submit Failed");
+
         return _productClient.checkStock(request);
     }
 
