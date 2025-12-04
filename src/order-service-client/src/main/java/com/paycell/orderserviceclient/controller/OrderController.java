@@ -63,15 +63,23 @@ public class OrderController {
     @PostMapping("submitEvent")
     public ResponseEntity<SubmitOrderResponse> submitOrderEvent(@RequestBody SubmitOrderRequest request) throws JsonProcessingException {
 
-        String payload = _objectMapper.writeValueAsString(request);
+        try {
 
-        Message<String> message = MessageBuilder.withPayload(payload).build();
-        boolean isSend = _streamBride.send("submitOrder-out-0",message);
+           var response =  _productClient.checkStock(request);
 
-        if(!isSend)
-            throw new RuntimeException("Order Submit Failed");
+            String payload = _objectMapper.writeValueAsString(request);
 
-        return _productClient.checkStock(request);
+            Message<String> message = MessageBuilder.withPayload(payload).build();
+            boolean isSend = _streamBride.send("orderSubmit-out-0",message);
+
+            if(!isSend)
+                throw new RuntimeException("Order Submit Failed");
+            return response;
+
+        } catch (Exception exception) {
+            System.out.println("Order" + exception.getMessage());
+            throw  new RuntimeException("Hata");
+        }
     }
 
     public ResponseEntity<String> ProductClientCircuitBrakerFallback(@RequestBody SubmitOrderRequest request, Throwable t){
